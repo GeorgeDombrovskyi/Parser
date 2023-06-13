@@ -9,10 +9,15 @@ import os
 main_url = 'https://autoprotect.ua/'
 headers = {'User-agent':'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/112.0.0.0 Safari/537.36'}
 
-data_name = [['Назва']]
 data_article = [['Артикул']]
-data_brand = [['Бренд']]
-data_img_link = [['Шлях до картинки']]
+data_name = [['Назва']]
+data_stock = '0'  # - Запаси
+data_avail = '0'  # - В наявності
+data_cost = '0'  # - Звичайна ціна
+data_category = 'Автозапчастини, Автозапчастини > Гальмівна система, Автозапчастини > Гальмівна система > Гальмові елементи > Гальмівні диски, Автозапчастини > Гальмівна система > Гальмові елементи'
+data_brand = [['Позначки']]  # - Бренд товару
+data_img_link = [['Зображення']]
+data_analogs = [['Пропозиція товарів']]  # - Аналоги
 data_original_details = [['Оригінальні  номери']]
 data_another_cars = [['Застосовність до автомобілів']]
 data_details_information = [['Технічні характеристики']]
@@ -199,6 +204,15 @@ def data_combine():
     data_combine_information.append([combiner])
 
 
+# --- ANALOGS
+def analogs(params):
+    try:
+        analogs_area = params.find('div', class_='div-tbl tbl-ccard-analog').findAll('div', class_='tbl-tr')
+        print(analogs_area)
+
+
+    except: data_analogs.append([''])
+
 # --- MAKE EXCEL FILE
 def make_xlsx():
     with xlsxwriter.Workbook(page_parsing.split('/')[-1]+'.xlsx') as workbook:
@@ -244,13 +258,14 @@ def main():
             open_product_page = get_soup(product_link)
 
             # --- OUR FUNCTIONS
-            product_names(open_product_page)
+            # product_names(open_product_page)
             # product_article(open_product_page)
             # product_brand(open_product_page)
-            product_img(open_product_page)
+            # product_img(open_product_page)
             # product_original_details(open_product_page)
             # another_cars(open_product_page, params_name)
             # details_information(open_product_page)
+            analogs(open_product_page)
             # data_combine()
 
         # make_xlsx()
