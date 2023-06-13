@@ -1,11 +1,11 @@
 import bs4
 import requests
 import xlsxwriter
-import csv
 import os
-# import translate
 
-# For UA version
+
+# ------------------------------------------------------ MAIN SOURCES ------------------------------------------------------
+
 main_url = 'https://autoprotect.ua/'
 headers = {'User-agent':'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/112.0.0.0 Safari/537.36'}
 
@@ -22,11 +22,6 @@ combine_ua_origin = []
 combine_ua_inform = []
 combine_ua_cars = []
 
-
-
-
-# <a href="/shop/product-tag/090/">Аналог</a>
-
 page_parsing = '/catalog/komplekt_napravlyayushhej_supporta'
 
 def get_soup(url):
@@ -40,27 +35,48 @@ name_product = ''
 article_product = ''
 
 
-
-# def txt_trans(text):
-#     print('we are start')
-#     try:
-#         t = translate.Translator(from_lang='ru', to_lang='uk')
-#         print(t.translate(text))
-#
-#     except:
-#         print('wrong')
+# --- EXAMPLE FOR SEARCHING ON OUR SITE
+# <a href="/shop/product-tag/090/">Аналог</a>
+# http://localhost/shop/?s=nd+666&post_type=product
 
 
-#  PRODUCT NAME
+# --- MAKE A FOLDERS: CATEGORY, IMG, CARS CSV
+category_folder_name = f"{page_parsing.split('/')[-1]}"
+os.mkdir(category_folder_name)
+os.chdir(category_folder_name)
+
+img_folder_name = "IMG_folder"
+os.mkdir(img_folder_name)
+
+cars_csv_folder_name = "CSV_cars"
+os.mkdir(cars_csv_folder_name)
+
+
+# ------------------------------------------------------ DEFS AREA ------------------------------------------------------
+
+# --- GO BACK ONE FOLDER (like "cd ..")
+def dirback():
+    m = os.getcwd()
+    n = len(m.split('/')[-1])
+    y = m[0: -n]
+    os.chdir(y)
+    return None
+
+
+# --- PRODUCT NAME
 def product_names(params):
     try:
         product_name = params.find('h1').find('span').find(string=True).strip()
         data_name.append([product_name])
     except: data_name.append([''])
 
-#  PRODUCT IMG AND ITS SOURCES
+
+# --- PRODUCT IMG AND ITS SOURCES
 def product_img(params):
+    print('-- Start IMG function')
     try:
+        os.chdir(img_folder_name)
+
         img_link = params.find('div', class_='ccard-img').find('img')['src']
         file_name = str(img_link).split('/')[-1]
         img_data = requests.get(img_link).content
@@ -70,28 +86,28 @@ def product_img(params):
 
         img_source = 'http://localhost/shop/wp-content/uploads/products_img/' + file_name
         data_img_link.append([img_source])
-        print(file_name)
+
     except: data_img_link.append([''])
+    dirback()
 
 
-
-    # GO TO PRODUCT PAGE for another information
-
-#  PRODUCT BRAND
+# --- PRODUCT BRAND
 def product_brand(params):
     try:
         brand = params.find('div', class_='ccard-pbrand').find('a').find(string=True).strip()
         data_brand.append([brand])
     except: data_brand.append([''])
 
-# PRODUCT ARTICLE
+
+# --- PRODUCT ARTICLE
 def product_article(params):
     try:
         article = params.find('div', class_='ccard-part').find('b').find(string=True).strip()
         data_article.append([article])
     except: data_article.append([''])
 
-# PRODUCT ORIGINAL DETAILS
+
+# --- PRODUCT ORIGINAL DETAILS
 def product_original_details(params):
     print('start origin')
     combine_ua_origin.clear()
@@ -113,7 +129,8 @@ def product_original_details(params):
         combine_ua_origin.append('')
         data_original_details.append([''])
 
-# ANOTHER CARS
+
+# --- ANOTHER CARS
 def another_cars(params, params_name):
     try:
         combine_ua_cars.clear()
@@ -132,9 +149,8 @@ def another_cars(params, params_name):
         data_another_cars.append([''])
 
 
-# DETAILS INFORMATION
+# --- DETAILS INFORMATION
 def details_information(params):
-
     try:
         combine_ua_inform.clear()
 
@@ -146,13 +162,11 @@ def details_information(params):
 
         start = 0
         for list in range(1, num+1):
-
             data_inform = data_inform + "<tr><td style='text-align:center'>" + information_area_name[start].text + \
                           "</td><td style='width:50%; text-align:center'>" + \
                           information_area_value[
                 start].text + "</td></tr>" + '\n'
             start = start+1
-
 
         combine_ua_inform.append("<div style='border:solid; border-color:#ed7583'></div><p  " \
                       "style='text-align:center'><b>Технічні характеристики</b></p><table style='font-size:15px; line-height: 1;'><tbody>" + data_inform +\
@@ -165,6 +179,7 @@ def details_information(params):
         data_details_information.append([''])
 
 
+# --- COMBINE ALL DATA
 def data_combine():
     print('start data combine')
     print('info -- ', combine_ua_inform[0])
@@ -184,8 +199,7 @@ def data_combine():
     data_combine_information.append([combiner])
 
 
-
-# MAKE EXCEL FILE
+# --- MAKE EXCEL FILE
 def make_xlsx():
     with xlsxwriter.Workbook(page_parsing.split('/')[-1]+'.xlsx') as workbook:
         worksheet = workbook.add_worksheet()
@@ -208,10 +222,7 @@ def make_xlsx():
 
 
 
-
-
-
-
+# ------------------------------------------------------ MAIN AREA ------------------------------------------------------
 
 def main():
 
@@ -232,31 +243,17 @@ def main():
 
             open_product_page = get_soup(product_link)
 
-            #  PRODUCT NAME
+            # --- OUR FUNCTIONS
             product_names(open_product_page)
-
-            #  PRODUCT ARTICLE
-            product_article(open_product_page)
-
-            #  PRODUCT BRAND
-            product_brand(open_product_page)
-
-            #  PRODUCT IMG
+            # product_article(open_product_page)
+            # product_brand(open_product_page)
             product_img(open_product_page)
+            # product_original_details(open_product_page)
+            # another_cars(open_product_page, params_name)
+            # details_information(open_product_page)
+            # data_combine()
 
-            # PRODUCT ORIGINAL DETAILS
-            product_original_details(open_product_page)
-
-            # ANOTHER CARS FOR THIS DETAIL
-            another_cars(open_product_page, params_name)
-
-            # INFORMATION ABOUT DETAILS
-            details_information(open_product_page)
-
-            # COMBINE FUNCTION FOR -- information, Original, Another Cars
-            data_combine()
-
-        make_xlsx()
+        # make_xlsx()
 
 
 
