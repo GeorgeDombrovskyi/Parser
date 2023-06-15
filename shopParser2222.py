@@ -1,18 +1,23 @@
 import bs4
 import requests
 import xlsxwriter
-import csv
 import os
-# import translate
 
-# For UA version
+
+# ------------------------------------------------------ MAIN SOURCES ------------------------------------------------------
+
 main_url = 'https://autoprotect.ua/'
 headers = {'User-agent':'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/112.0.0.0 Safari/537.36'}
 
-data_name = [['Назва']]
 data_article = [['Артикул']]
-data_brand = [['Бренд']]
-data_img_link = [['Шлях до картинки']]
+data_name = [['Назва']]
+data_stock = '0'  # - Запаси
+data_avail = '0'  # - В наявності
+data_cost = '0'  # - Звичайна ціна
+data_category = 'Автозапчастини, Автозапчастини > Гальмівна система, Автозапчастини > Гальмівна система > Гальмові елементи > Гальмівні диски, Автозапчастини > Гальмівна система > Гальмові елементи'
+data_brand = [['Позначки']]  # - Бренд товару
+data_img_link = [['Зображення']]
+data_analogs = [['Пропозиція товарів']]  # - Аналоги
 data_original_details = [['Оригінальні  номери']]
 data_another_cars = [['Застосовність до автомобілів']]
 data_details_information = [['Технічні характеристики']]
@@ -23,9 +28,22 @@ combine_ua_inform = []
 combine_ua_cars = []
 
 
+cars_list = ['ACURA',  'ALFA ROMEO', 'AUDI', 'BMW', 'CADILLAC', 'CHERY', 'CHEVROLET', 'CHRYSLER', 'CITROEN', 'DACIA', 'DAEWOO', 'DAIHATSU', 'DODGE', 'FIAT',
+          'FORD',
+     'GEELY', 'HONDA', 'HUMMER', 'HYUNDAI', 'INFINITI', 'IVECO', 'JAGUAR', 'JEEP', 'KIA', 'LAND ROVER', 'LEXUS', 'MAZDA', 'MERCEDES', 'MINI', 'MITSUBISHI',
+     'NISSAN', 'NISSAN', 'OPEL', 'PEUGEOT', 'PORSCHE', 'RENAULT', 'ROVER', 'SAAB', 'SEAT', 'SKODA', 'SMART', 'SSANGYONG', 'SUBARU', 'SUZUKI', 'TOYOTA',
+     'VOLKSWAGEN', 'VOLVO']
+
+num_for_car_list = 0
+
+article_mme = [['product_sku']]
+make_mme = [['make']]
+model_mme = [['model']]
+engine_mme = [['engine']]
 
 
-# <a href="/shop/product-tag/090/">Аналог</a>
+
+
 
 page_parsing = '/catalog/komplekt_napravlyayushhej_supporta'
 
@@ -40,27 +58,48 @@ name_product = ''
 article_product = ''
 
 
-
-# def txt_trans(text):
-#     print('we are start')
-#     try:
-#         t = translate.Translator(from_lang='ru', to_lang='uk')
-#         print(t.translate(text))
-#
-#     except:
-#         print('wrong')
+# --- EXAMPLE FOR SEARCHING ON OUR SITE
+# <a href="/shop/product-tag/090/">Аналог</a>
+# http://localhost/shop/?s=nd+666&post_type=product
 
 
-#  PRODUCT NAME
+# --- MAKE A FOLDERS: CATEGORY, IMG, CARS CSV
+category_folder_name = f"{page_parsing.split('/')[-1]}"
+os.mkdir(category_folder_name)
+os.chdir(category_folder_name)
+
+img_folder_name = "IMG_folder"
+os.mkdir(img_folder_name)
+
+cars_csv_folder_name = "CSV_cars"
+os.mkdir(cars_csv_folder_name)
+
+
+# ------------------------------------------------------ DEFS AREA ------------------------------------------------------
+
+# --- GO BACK ONE FOLDER (like "cd ..")
+def dirback():
+    m = os.getcwd()
+    n = len(m.split('/')[-1])
+    y = m[0: -n]
+    os.chdir(y)
+    return None
+
+
+# --- PRODUCT NAME
 def product_names(params):
     try:
         product_name = params.find('h1').find('span').find(string=True).strip()
         data_name.append([product_name])
     except: data_name.append([''])
 
-#  PRODUCT IMG AND ITS SOURCES
+
+# --- PRODUCT IMG AND ITS SOURCES
 def product_img(params):
+    print('-- Start IMG function')
     try:
+        os.chdir(img_folder_name)
+
         img_link = params.find('div', class_='ccard-img').find('img')['src']
         file_name = str(img_link).split('/')[-1]
         img_data = requests.get(img_link).content
@@ -70,28 +109,28 @@ def product_img(params):
 
         img_source = 'http://localhost/shop/wp-content/uploads/products_img/' + file_name
         data_img_link.append([img_source])
-        print(file_name)
+
     except: data_img_link.append([''])
+    dirback()
 
 
-
-    # GO TO PRODUCT PAGE for another information
-
-#  PRODUCT BRAND
+# --- PRODUCT BRAND
 def product_brand(params):
     try:
         brand = params.find('div', class_='ccard-pbrand').find('a').find(string=True).strip()
         data_brand.append([brand])
     except: data_brand.append([''])
 
-# PRODUCT ARTICLE
+
+# --- PRODUCT ARTICLE
 def product_article(params):
     try:
         article = params.find('div', class_='ccard-part').find('b').find(string=True).strip()
         data_article.append([article])
     except: data_article.append([''])
 
-# PRODUCT ORIGINAL DETAILS
+
+# --- PRODUCT ORIGINAL DETAILS
 def product_original_details(params):
     print('start origin')
     combine_ua_origin.clear()
@@ -113,28 +152,67 @@ def product_original_details(params):
         combine_ua_origin.append('')
         data_original_details.append([''])
 
-# ANOTHER CARS
-def another_cars(params, params_name):
-    try:
-        combine_ua_cars.clear()
 
-        another_auto_list_txt = ''
+# --- ANOTHER CARS
+def another_cars(params, params_name):
+    art = [['art']]
+    car = [['car']]
+
+    try:
         auto_list_area = params.find('div', class_="item-modifications-list").findAll('li')
+        print('how much - ', len(auto_list_area))
+
+        article = params.find('div', class_='ccard-part').find('b').find(string=True).strip()
 
         for auto_list_area in auto_list_area:
+            print('start FOR auto_list_area')
             another_auto = auto_list_area.text
-            another_auto_list_txt = another_auto_list_txt + another_auto + '\n'
+            print('another_auto = ', another_auto)
 
-        data_another_cars.append([another_auto_list_txt])
-        combine_ua_cars.append(another_auto_list_txt)
+            for check in cars_list:
+                print('start FOR cars_list')
+                print('our check = ', check)
+                print('another_auto  = ', another_auto)
+                print('cars list = ', cars_list)
+                print(' num = ', num_for_car_list)
+                print('cars list num = ', cars_list[num_for_car_list])
+
+
+                x = another_auto.find(cars_list[num_for_car_list])
+                print('we are looking for  - ', cars_list[num_for_car_list], ' in \n', another_auto)
+                if x != -1:
+                    print('est')
+                    first = cars_list[num_for_car_list]
+                    another_auto = another_auto.replace(cars_list[num_for_car_list], '')
+                    another_auto = another_auto.split(':')
+                    second = another_auto[0]
+                    third = another_auto[1]
+                    print('111 --- ', first)
+                    print('222 --- ', second)
+                    print('333 --- ', third)
+                    break
+                else:
+                    print('----- NOTHING HERE ----')
+                    num_for_car_list = num_for_car_list + 1
+
+            car.append([another_auto])
+            art.append([article])
+            # another_auto_list_txt = another_auto_list_txt + another_auto + '\n'
+
+        # with xlsxwriter.Workbook(article + '.xlsx') as workbook:
+        #     worksheet = workbook.add_worksheet()
+        #     for row_num, info in enumerate(art):
+        #         worksheet.write_row(row_num, 0, info)
+        #     for row_num, info in enumerate(car):
+        #         worksheet.write_row(row_num, 1, info)
+
     except:
         combine_ua_cars.append('')
         data_another_cars.append([''])
 
 
-# DETAILS INFORMATION
+# --- DETAILS INFORMATION
 def details_information(params):
-
     try:
         combine_ua_inform.clear()
 
@@ -146,13 +224,11 @@ def details_information(params):
 
         start = 0
         for list in range(1, num+1):
-
             data_inform = data_inform + "<tr><td style='text-align:center'>" + information_area_name[start].text + \
                           "</td><td style='width:50%; text-align:center'>" + \
                           information_area_value[
                 start].text + "</td></tr>" + '\n'
             start = start+1
-
 
         combine_ua_inform.append("<div style='border:solid; border-color:#ed7583'></div><p  " \
                       "style='text-align:center'><b>Технічні характеристики</b></p><table style='font-size:15px; line-height: 1;'><tbody>" + data_inform +\
@@ -165,6 +241,7 @@ def details_information(params):
         data_details_information.append([''])
 
 
+# --- COMBINE ALL DATA
 def data_combine():
     print('start data combine')
     print('info -- ', combine_ua_inform[0])
@@ -184,8 +261,24 @@ def data_combine():
     data_combine_information.append([combiner])
 
 
+# --- ANALOGS
+def analogs(params):
+    try:
+        analogs_area = params.find('div', class_='div-tbl tbl-ccard-analog').findAll('div', class_='tbl-tr')
+        analogs_list= ''
+        for analogs_area in analogs_area:
+            src = analogs_area.find('a')['href']
+            parse = get_soup(src)
+            try:
+                article = parse.find('div', class_='ccard-part').find('b').find(string=True).strip()
+                analogs_list = analogs_list + article +', '
+            except:
+                None
+        data_analogs.append([analogs_list])
 
-# MAKE EXCEL FILE
+    except: data_analogs.append([''])
+
+# --- MAKE EXCEL FILE
 def make_xlsx():
     with xlsxwriter.Workbook(page_parsing.split('/')[-1]+'.xlsx') as workbook:
         worksheet = workbook.add_worksheet()
@@ -205,13 +298,12 @@ def make_xlsx():
             worksheet.write_row(row_num, 6, info)
         for row_num, info in enumerate(data_combine_information):
             worksheet.write_row(row_num, 7, info)
+        for row_num, info in enumerate(data_analogs):
+            worksheet.write_row(row_num, 8, info)
 
 
 
-
-
-
-
+# ------------------------------------------------------ MAIN AREA ------------------------------------------------------
 
 def main():
 
@@ -232,31 +324,18 @@ def main():
 
             open_product_page = get_soup(product_link)
 
-            #  PRODUCT NAME
-            product_names(open_product_page)
-
-            #  PRODUCT ARTICLE
-            product_article(open_product_page)
-
-            #  PRODUCT BRAND
-            product_brand(open_product_page)
-
-            #  PRODUCT IMG
-            product_img(open_product_page)
-
-            # PRODUCT ORIGINAL DETAILS
-            product_original_details(open_product_page)
-
-            # ANOTHER CARS FOR THIS DETAIL
+            # --- OUR FUNCTIONS
+            # product_names(open_product_page)
+            # product_article(open_product_page)
+            # product_brand(open_product_page)
+            # product_img(open_product_page)
+            # product_original_details(open_product_page)
             another_cars(open_product_page, params_name)
+            # details_information(open_product_page)
+            # analogs(open_product_page)
+            # data_combine()
 
-            # INFORMATION ABOUT DETAILS
-            details_information(open_product_page)
-
-            # COMBINE FUNCTION FOR -- information, Original, Another Cars
-            data_combine()
-
-        make_xlsx()
+        # make_xlsx()
 
 
 
@@ -264,37 +343,3 @@ def main():
 
 if __name__ == '__main__':
     main()
-
-
-    # --- ANOTHER CARS
-    def another_cars(params, params_name):
-        art = [['art']]
-        car = [['car']]
-        try:
-            combine_ua_cars.clear()
-
-            another_auto_list_txt = ''
-            auto_list_area = params.find('div', class_="item-modifications-list").findAll('li')
-            print('how much - ', len(auto_list_area))
-
-            article = params.find('div', class_='ccard-part').find('b').find(string=True).strip()
-
-            for auto_list_area in auto_list_area:
-                another_auto = auto_list_area.text
-                print(another_auto)
-                car.append([another_auto])
-                art.append([article])
-                # another_auto_list_txt = another_auto_list_txt + another_auto + '\n'
-
-            with xlsxwriter.Workbook(article + '.xlsx') as workbook:
-                worksheet = workbook.add_worksheet()
-                for row_num, info in enumerate(art):
-                    worksheet.write_row(row_num, 0, info)
-                for row_num, info in enumerate(car):
-                    worksheet.write_row(row_num, 1, info)
-
-            data_another_cars.append([another_auto_list_txt])
-            combine_ua_cars.append(another_auto_list_txt)
-        except:
-            combine_ua_cars.append('')
-            data_another_cars.append([''])

@@ -27,6 +27,23 @@ combine_ua_origin = []
 combine_ua_inform = []
 combine_ua_cars = []
 
+
+cars_list = ['ACURA',  'ALFA ROMEO', 'AUDI', 'ASTON MARTIN', 'BMW', 'BUICK', 'BYD', 'CADILLAC', 'CHERY', 'CHEVROLET', 'CHRYSLER', 'CITROEN', 'DACIA',
+             'DAEWOO', 'DAIHATSU', 'DODGE', 'FIAT', 'FORD', 'GEELY', 'GENERAL MOTORS', 'GREAT WALL', 'HONDA', 'HUMMER', 'HYUNDAI', 'INFINITI', 'ISUZU',
+             'IVECO', 'JAGUAR', 'JEEP', 'KIA', 'LADA', 'LANCIA', 'LAND ROVER', 'LEXUS', 'LINKOLN', 'MAZDA', 'MERCEDES', 'MG', 'MINI', 'MITSUBISHI', 'OPEL',
+             'PEUGEOT', 'PORSCHE', 'RENAULT', 'ROVER', 'SAAB', 'SEAT', 'SKODA', 'SMART', 'SSANGYONG', 'SUBARU', 'SUZUKI', 'TATA', 'TOYOTA', 'VAG',
+             'VW' 'VOLKSWAGEN', 'VOLVO', 'ЗАЗ', 'ГАЗ', 'МОСКВИЧ', 'УАЗ']
+
+
+article_mme = [['product_sku']]
+make_mme = [['make']]
+model_mme = [['model']]
+engine_mme = [['engine']]
+
+
+
+
+
 page_parsing = '/catalog/komplekt_napravlyayushhej_supporta'
 
 def get_soup(url):
@@ -137,18 +154,50 @@ def product_original_details(params):
 
 # --- ANOTHER CARS
 def another_cars(params, params_name):
-    try:
-        combine_ua_cars.clear()
+    art = [['art']]
+    car = [['car']]
 
-        another_auto_list_txt = ''
+    try:
         auto_list_area = params.find('div', class_="item-modifications-list").findAll('li')
+        print('how much - ', len(auto_list_area))
+
+        article = params.find('div', class_='ccard-part').find('b').find(string=True).strip()
 
         for auto_list_area in auto_list_area:
+            print('start FOR auto_list_area')
             another_auto = auto_list_area.text
-            another_auto_list_txt = another_auto_list_txt + another_auto + '\n'
+            print('another_auto = ', another_auto)
 
-        data_another_cars.append([another_auto_list_txt])
-        combine_ua_cars.append(another_auto_list_txt)
+            for check in cars_list:
+                print('start FOR cars_list')
+                x = another_auto.find(check)
+                print('we are looking for  - ', check, ' in \n', another_auto)
+                if x != -1:
+                    print('est')
+                    first = check
+                    another_auto = another_auto.replace(check, '')
+                    another_auto = another_auto.split(':')
+                    second = another_auto[0]
+                    third = another_auto[1]
+                    print('111 --- ', first)
+                    print('222 --- ', second)
+                    print('333 --- ', third)
+                    break
+                else:
+                    print('----- NOTHING HERE ----')
+
+
+            car.append([another_auto])
+            art.append([article])
+            # another_auto_list_txt = another_auto_list_txt + another_auto + '\n'
+
+        # with xlsxwriter.Workbook(article + '.xlsx') as workbook:
+        #     worksheet = workbook.add_worksheet()
+        #     for row_num, info in enumerate(art):
+        #         worksheet.write_row(row_num, 0, info)
+        #     for row_num, info in enumerate(car):
+        #         worksheet.write_row(row_num, 1, info)
+
     except:
         combine_ua_cars.append('')
         data_another_cars.append([''])
@@ -208,8 +257,16 @@ def data_combine():
 def analogs(params):
     try:
         analogs_area = params.find('div', class_='div-tbl tbl-ccard-analog').findAll('div', class_='tbl-tr')
-        print(analogs_area)
-
+        analogs_list= ''
+        for analogs_area in analogs_area:
+            src = analogs_area.find('a')['href']
+            parse = get_soup(src)
+            try:
+                article = parse.find('div', class_='ccard-part').find('b').find(string=True).strip()
+                analogs_list = analogs_list + article +', '
+            except:
+                None
+        data_analogs.append([analogs_list])
 
     except: data_analogs.append([''])
 
@@ -233,6 +290,8 @@ def make_xlsx():
             worksheet.write_row(row_num, 6, info)
         for row_num, info in enumerate(data_combine_information):
             worksheet.write_row(row_num, 7, info)
+        for row_num, info in enumerate(data_analogs):
+            worksheet.write_row(row_num, 8, info)
 
 
 
@@ -263,9 +322,9 @@ def main():
             # product_brand(open_product_page)
             # product_img(open_product_page)
             # product_original_details(open_product_page)
-            # another_cars(open_product_page, params_name)
+            another_cars(open_product_page, params_name)
             # details_information(open_product_page)
-            analogs(open_product_page)
+            # analogs(open_product_page)
             # data_combine()
 
         # make_xlsx()
