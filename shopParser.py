@@ -1,3 +1,5 @@
+import csv
+
 import bs4
 import requests
 import xlsxwriter
@@ -28,18 +30,19 @@ combine_ua_inform = []
 combine_ua_cars = []
 
 
-cars_list = ['ACURA',  'ALFA ROMEO', 'AUDI', 'ASTON MARTIN', 'BMW', 'BUICK', 'BYD', 'CADILLAC', 'CHERY', 'CHEVROLET', 'CHRYSLER', 'CITROEN', 'DACIA',
-             'DAEWOO', 'DAIHATSU', 'DODGE', 'FIAT', 'FORD', 'GEELY', 'GENERAL MOTORS', 'GREAT WALL', 'HONDA', 'HUMMER', 'HYUNDAI', 'INFINITI', 'ISUZU',
-             'IVECO', 'JAGUAR', 'JEEP', 'KIA', 'LADA', 'LANCIA', 'LAND ROVER', 'LEXUS', 'LINKOLN', 'MAZDA', 'MERCEDES', 'MG', 'MINI', 'MITSUBISHI', 'OPEL',
-             'PEUGEOT', 'PORSCHE', 'RENAULT', 'ROVER', 'SAAB', 'SEAT', 'SKODA', 'SMART', 'SSANGYONG', 'SUBARU', 'SUZUKI', 'TATA', 'TOYOTA', 'VAG',
-             'VW' 'VOLKSWAGEN', 'VOLVO', 'ЗАЗ', 'ГАЗ', 'МОСКВИЧ', 'УАЗ']
+cars_list = ['ACURA', 'ABARTH', 'AUSTIN', 'AUTOBIANCHI', 'ALPINE', 'ALFA ROMEO', 'AUDI', 'ASTON MARTIN', 'BMW', 'BUICK', 'BYD', 'CADILLAC', 'CHERY',
+             'CHEVROLET', 'CHRYSLER', 'CITRO"EN', 'CUPRA', 'DACIA', 'DAEWOO', 'DAIMLER', 'DS', 'DAIHATSU', 'DODGE', 'FIAT', 'FORD', 'FERRARI', 'GEELY',
+             'GMC', 'GENERAL MOTORS', 'GREAT WALL', 'HONDA', 'HUMMER', 'HYUNDAI', 'HOLDEN', 'INFINITI', 'ISUZU', 'IVECO', 'JAGUAR', 'JEEP', 'KIA', 'LADA',
+             'LANCIA', 'LAND ROVER', 'LIFAN', 'LEXUS', 'LINKOLN', 'MAZDA','MASERATI', 'MERCEDES', 'MG', 'MINI', 'MITSUBISHI', 'NISSAN', 'OPEL', 'PEUGEOT',
+             'PROTON', 'PORSCHE', 'PLYMOUTH', 'PONTIAC', 'RAM', 'RENAULT', 'ROVER', 'SAAB', 'SCION', 'SEAT', 'SKODA', 'SMART', 'SSANGYONG', 'SUBARU',
+             'SUZUKI', 'TATA', 'TALBOT', 'TOYOTA', 'VAG', 'VW', 'VOLKSWAGEN', 'VAUXHALL', 'VOLVO', 'ЗАЗ', 'ГАЗ', 'МОСКВИЧ', 'УАЗ']
 
 
 article_mme = [['product_sku']]
 make_mme = [['make']]
 model_mme = [['model']]
 engine_mme = [['engine']]
-
+combine_mme =[['product_sku', 'make', 'model', 'engine']]
 
 
 
@@ -151,56 +154,113 @@ def product_original_details(params):
         combine_ua_origin.append('')
         data_original_details.append([''])
 
+def save_csv_cars(params_name):
+
+    with open(f'{params_name}.csv', 'w') as file:
+        writer = csv.writer(file)
+        writer.writerows(
+            combine_mme
+        )
+
+def save_main_csv(params_name):
+    num = len(data_article)
+    print('OUR NUM  -  ', num)
+
+    with open(f'{params_name}.csv', 'a') as file:
+        for w in range(0, num):
+            writer = csv.writer(file)
+            writer.writerow(
+                [data_article[w][0], data_name[w][0],  data_brand[w][0], data_original_details[w][0]]
+            )
+
+
+def save_another_car(params_name):
+    with xlsxwriter.Workbook(params_name + '.xlsx') as workbook:
+        worksheet = workbook.add_worksheet()
+        for row_num, info in enumerate(article_mme):
+            worksheet.write_row(row_num, 0, info)
+        for row_num, info in enumerate(make_mme):
+            worksheet.write_row(row_num, 1, info)
+        for row_num, info in enumerate(model_mme):
+            worksheet.write_row(row_num, 2, info)
+        for row_num, info in enumerate(engine_mme):
+            worksheet.write_row(row_num, 3, info)
+
+def define_car(param_another, param_article):
+
+    try:
+        for check in cars_list:
+            x = param_another.find(check)
+            if x != -1:
+
+                param_another = param_another.replace(check, '')
+                # print('PARAM - ', param_another)
+                param_another = param_another.split(':')
+                # print('PARAM - ', param_another)
+
+
+                combine_mme.append([param_article, check, param_another[0], param_another[1]])
+                # print('111 -- ', combine_mme)
+                # print('OUR COMBINE  -  ', combine_mme)
+                # article_mme.append([param_article])
+                # make_mme.append([check])
+                # model_mme.append([param_another[0]])
+                # engine_mme.append([param_another[1]])
+                break
+            elif check == 'УАЗ':
+                print('check is - ', check)
+                print('----- NOTHING HERE ----', param_another)
+
+
+
+    except: print('DEF define Car goimg wrong')
 
 # --- ANOTHER CARS
 def another_cars(params, params_name):
-    art = [['art']]
-    car = [['car']]
 
     try:
         auto_list_area = params.find('div', class_="item-modifications-list").findAll('li')
-        print('how much - ', len(auto_list_area))
+        # print('how much - ', len(auto_list_area))
+        # скільки в списку зараз
+        # якщо більше 5к - то обнулити список та виконати функцію
+        # якщо менше просто виконатати функцію
 
         article = params.find('div', class_='ccard-part').find('b').find(string=True).strip()
+        print('y nas v spiske - ', len(combine_mme))
 
-        for auto_list_area in auto_list_area:
-            print('start FOR auto_list_area')
-            another_auto = auto_list_area.text
-            print('another_auto = ', another_auto)
+        if len(combine_mme) < 10000 :
+            for auto_list_area in auto_list_area:
+                # print('start FOR auto_list_area')
+                another_auto = auto_list_area.text
+                # print('another_auto = ', another_auto)
+                define_car(another_auto, article)
+        else:
+            print('ZAWLI ZA 10000')
 
-            for check in cars_list:
-                print('start FOR cars_list')
-                x = another_auto.find(check)
-                print('we are looking for  - ', check, ' in \n', another_auto)
-                if x != -1:
-                    print('est')
-                    first = check
-                    another_auto = another_auto.replace(check, '')
-                    another_auto = another_auto.split(':')
-                    second = another_auto[0]
-                    third = another_auto[1]
-                    print('111 --- ', first)
-                    print('222 --- ', second)
-                    print('333 --- ', third)
-                    break
-                else:
-                    print('----- NOTHING HERE ----')
+            save_csv_cars(article)
+            # save_another_car(article)
+
+            combine_mme.clear()
+            # article_mme.clear()
+            # make_mme.clear()
+            # model_mme.clear()
+            # engine_mme.clear()
+
+            combine_mme.append(['product_sku', 'make', 'model', 'engine'])
+            # article_mme.append(['product_sku'])
+            # make_mme.append(['make'])
+            # model_mme.append(['model'])
+            # engine_mme.append(['engine'])
+
+            for auto_list_area in auto_list_area:
+                # print('start FOR auto_list_area')
+                another_auto = auto_list_area.text
+                # print('another_auto = ', another_auto)
+                define_car(another_auto, article)
 
 
-            car.append([another_auto])
-            art.append([article])
-            # another_auto_list_txt = another_auto_list_txt + another_auto + '\n'
 
-        # with xlsxwriter.Workbook(article + '.xlsx') as workbook:
-        #     worksheet = workbook.add_worksheet()
-        #     for row_num, info in enumerate(art):
-        #         worksheet.write_row(row_num, 0, info)
-        #     for row_num, info in enumerate(car):
-        #         worksheet.write_row(row_num, 1, info)
-
-    except:
-        combine_ua_cars.append('')
-        data_another_cars.append([''])
+    except: None
 
 
 # --- DETAILS INFORMATION
@@ -301,7 +361,8 @@ def main():
 
     first_categories_page = get_soup(main_url + page_parsing)
     page_amont = int(first_categories_page.find('div', class_="cpages").findAll('li')[-1].find(string=True))
-    for page_num in range(1, 2):
+    print(page_amont)
+    for page_num in range(1, 3):
         categories_page = get_soup(f'{main_url + page_parsing}/p_{page_num}')
         print('START - ', page_num)
 
@@ -317,16 +378,19 @@ def main():
             open_product_page = get_soup(product_link)
 
             # --- OUR FUNCTIONS
-            # product_names(open_product_page)
-            # product_article(open_product_page)
-            # product_brand(open_product_page)
+            product_names(open_product_page)
+            product_article(open_product_page)
+            product_brand(open_product_page)
             # product_img(open_product_page)
-            # product_original_details(open_product_page)
-            another_cars(open_product_page, params_name)
+            product_original_details(open_product_page)
+            # another_cars(open_product_page, params_name)
             # details_information(open_product_page)
             # analogs(open_product_page)
             # data_combine()
 
+        # save_another_car(params_name)
+        # save_csv_cars(params_name)
+    save_main_csv(category_folder_name)
         # make_xlsx()
 
 

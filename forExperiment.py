@@ -1,4 +1,4 @@
-#
+import os
 # car = 'VOLVO 90 145 (930_): бензин 1.8 i.e. 16V (930.A1A) AR 32201 ( 144 л.с., 106 kw )'
 #
 #
@@ -39,17 +39,33 @@
 
 
 num = 0
-list = 'some phrase for nothing'
-list_b = ['tt', 'yy', 'uu', 'ii']
+list = ['a', 'b', 'c', 'd']
 
 def fun():
     for check in list:
-        print('+')
-        for come in list_b:
-            print(num)
-            print(list_b[num])
-            num = num + 1
-
+        print(num)
+        num = num + 1
 
 fun()
 
+
+# dt_a = [['a']]
+
+# dt_a.append(['bb'])
+# dt_a.clear()
+# dt_a.append(['a'])
+# print(dt_a)
+
+
+
+
+
+
+
+# def dirback():
+#     we_here = os.getcwd()
+#     need_cut = len(we_here.split('/')[-1])
+#     will_be = we_here[0: -need_cut]
+#     os.chdir(will_be)
+#
+# dirback()
