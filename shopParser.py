@@ -16,7 +16,6 @@ data_name = [['Назва']]
 data_stock = '0'  # - Запаси
 data_avail = '0'  # - В наявності
 data_cost = '0'  # - Звичайна ціна
-data_category = 'Автозапчастини, Автозапчастини > Гальмівна система, Автозапчастини > Гальмівна система > Гальмові елементи > Гальмівні диски, Автозапчастини > Гальмівна система > Гальмові елементи'
 data_brand = [['Позначки']]  # - Бренд товару
 data_img_link = [['Зображення']]
 data_analogs = [['Пропозиція товарів']]  # - Аналоги
@@ -33,7 +32,7 @@ combine_ua_cars = []
 cars_list = ['ACURA', 'ABARTH', 'AUSTIN', 'AUTOBIANCHI', 'ALPINE', 'ALFA ROMEO', 'AUDI', 'ASTON MARTIN', 'BMW', 'BUICK', 'BYD', 'CADILLAC', 'CHERY',
              'CHEVROLET', 'CHRYSLER', 'CITRO"EN', 'CUPRA', 'DACIA', 'DAEWOO', 'DAIMLER', 'DS', 'DAIHATSU', 'DODGE', 'FIAT', 'FORD', 'FERRARI', 'GEELY',
              'GMC', 'GENERAL MOTORS', 'GREAT WALL', 'HONDA', 'HUMMER', 'HYUNDAI', 'HOLDEN', 'INFINITI', 'ISUZU', 'IVECO', 'JAGUAR', 'JEEP', 'KIA', 'LADA',
-             'LANCIA', 'LAND ROVER', 'LIFAN', 'LEXUS', 'LINKOLN', 'MAZDA','MASERATI', 'MERCEDES', 'MG', 'MINI', 'MITSUBISHI', 'NISSAN', 'OPEL', 'PEUGEOT',
+             'LANCIA', 'LAND ROVER', 'LIFAN', 'LEXUS', 'LINKOLN', 'MAZDA','MASERATI', 'MERCEDES-BENZ', 'MG', 'MINI', 'MITSUBISHI', 'NISSAN', 'OPEL', 'PEUGEOT',
              'PROTON', 'PORSCHE', 'PLYMOUTH', 'PONTIAC', 'RAM', 'RENAULT', 'ROVER', 'SAAB', 'SCION', 'SEAT', 'SKODA', 'SMART', 'SSANGYONG', 'SUBARU',
              'SUZUKI', 'TATA', 'TALBOT', 'TOYOTA', 'VAG', 'VW', 'VOLKSWAGEN', 'VAUXHALL', 'VOLVO', 'ЗАЗ', 'ГАЗ', 'МОСКВИЧ', 'УАЗ']
 
@@ -48,6 +47,8 @@ combine_mme =[['product_sku', 'make', 'model', 'engine']]
 
 
 page_parsing = '/catalog/komplekt_napravlyayushhej_supporta'
+data_category = 'Uncategorized, Автозапчастини, Автозапчастини > Гальмівна система, Автозапчастини > Гальмівна система > Гальмові елементи, Автозапчастини > Гальмівна система > Гальмові елементи > Комплект направляючої супорта'
+
 
 def get_soup(url):
     res = requests.get(url, headers)
@@ -109,7 +110,7 @@ def product_img(params):
         with open(file_name, 'wb') as handler:
             handler.write(img_data)
 
-        img_source = 'http://localhost/shop/wp-content/uploads/products_img/' + file_name
+        img_source = 'http://car-details.in.ua/wp-content/uploads/products_img/' + file_name
         data_img_link.append([img_source])
 
     except: data_img_link.append([''])
@@ -134,33 +135,33 @@ def product_article(params):
 
 # --- PRODUCT ORIGINAL DETAILS
 def product_original_details(params):
-    print('start origin')
     combine_ua_origin.clear()
     try:
-        print('start TRY')
         original_details_area = params.find('div', class_='item-oenmbrs-list').findAll('li')
-        # print(original_details_area)
         original_details_list = ''
         for original_details_area in original_details_area:
             original_details_list = original_details_list + original_details_area.text + '\n'
 
         combine_ua_origin.append("<div style='border:solid; border-color:#ed7583'></div><b>Оригінальні (конструкторські) номери:</b><div style='line-height: "
-                                 "1.2'><br>" + original_details_list + "</div>")
+                                 "1.2; column-count:4'><br>" + original_details_list + "</div>")
 
         data_original_details.append([original_details_list])
 
     except:
-        print('start EXCEPT')
         combine_ua_origin.append('')
         data_original_details.append([''])
 
 def save_csv_cars(params_name):
+    try:
+        os.chdir(cars_csv_folder_name)
+        with open(f'{params_name}.csv', 'w') as file:
+            writer = csv.writer(file)
+            writer.writerows(
+                combine_mme
+            )
+    except: print('SAVE-CSV-CARS  -- something went WRONG!')
+    dirback()
 
-    with open(f'{params_name}.csv', 'w') as file:
-        writer = csv.writer(file)
-        writer.writerows(
-            combine_mme
-        )
 
 def save_main_csv(params_name):
     num = len(data_article)
@@ -170,21 +171,20 @@ def save_main_csv(params_name):
         for w in range(0, num):
             writer = csv.writer(file)
             writer.writerow(
-                [data_article[w][0], data_name[w][0],  data_brand[w][0], data_original_details[w][0]]
+                [
+                    data_article[w][0],
+                    data_name[w][0],
+                    data_brand[w][0],
+                    data_combine_information[w][0],
+                    data_analogs[w][0],
+                    data_stock,
+                    data_avail,
+                    data_cost,
+                    data_category,
+                    data_img_link[w][0]
+                ]
             )
 
-
-def save_another_car(params_name):
-    with xlsxwriter.Workbook(params_name + '.xlsx') as workbook:
-        worksheet = workbook.add_worksheet()
-        for row_num, info in enumerate(article_mme):
-            worksheet.write_row(row_num, 0, info)
-        for row_num, info in enumerate(make_mme):
-            worksheet.write_row(row_num, 1, info)
-        for row_num, info in enumerate(model_mme):
-            worksheet.write_row(row_num, 2, info)
-        for row_num, info in enumerate(engine_mme):
-            worksheet.write_row(row_num, 3, info)
 
 def define_car(param_another, param_article):
 
@@ -217,13 +217,8 @@ def define_car(param_another, param_article):
 
 # --- ANOTHER CARS
 def another_cars(params, params_name):
-
     try:
         auto_list_area = params.find('div', class_="item-modifications-list").findAll('li')
-        # print('how much - ', len(auto_list_area))
-        # скільки в списку зараз
-        # якщо більше 5к - то обнулити список та виконати функцію
-        # якщо менше просто виконатати функцію
 
         article = params.find('div', class_='ccard-part').find('b').find(string=True).strip()
         print('y nas v spiske - ', len(combine_mme))
@@ -238,27 +233,14 @@ def another_cars(params, params_name):
             print('ZAWLI ZA 10000')
 
             save_csv_cars(article)
-            # save_another_car(article)
 
             combine_mme.clear()
-            # article_mme.clear()
-            # make_mme.clear()
-            # model_mme.clear()
-            # engine_mme.clear()
 
             combine_mme.append(['product_sku', 'make', 'model', 'engine'])
-            # article_mme.append(['product_sku'])
-            # make_mme.append(['make'])
-            # model_mme.append(['model'])
-            # engine_mme.append(['engine'])
 
             for auto_list_area in auto_list_area:
-                # print('start FOR auto_list_area')
                 another_auto = auto_list_area.text
-                # print('another_auto = ', another_auto)
                 define_car(another_auto, article)
-
-
 
     except: None
 
@@ -268,7 +250,6 @@ def details_information(params):
     try:
         combine_ua_inform.clear()
 
-        print('------ start details information ------')
         data_inform = ''
         information_area_name = params.findAll('div', class_="cc-tech-td-pn")
         information_area_value = params.findAll('div', class_="cc-tech-td-val")
@@ -295,21 +276,7 @@ def details_information(params):
 
 # --- COMBINE ALL DATA
 def data_combine():
-    print('start data combine')
-    print('info -- ', combine_ua_inform[0])
-    print('origin -- ', combine_ua_origin[0])
-    print('ccars -- ', combine_ua_cars[0])
-
-    # data_combine_information.clear()
-    combiner = combine_ua_inform[0] + '\n' + combine_ua_origin[0] + '\n' + f"<div style='border:solid; border-color:#ed7583;'></div><b  " \
-                                                                                         f"style='font-size:19px; color: #515151;'>Підходить до таких " \
-                                                                                         f"авто:</b> <div id='iframeId' style='display:none'>" + \
-               combine_ua_cars[0] + "</div> <button id='see-more'>Дивитись всі авто</button><script> let button = " \
-                                                                                         f"document.getElementById('see-more'); let frame = " \
-                                                                                         f"document.getElementById('iframeId');function go()" \
-                                                                                         "{ frame.style.display='block';};button.addEventListener('click', " \
-                                                                                         "go);</script>"
-
+    combiner = combine_ua_inform[0] + '\n' + combine_ua_origin[0]
     data_combine_information.append([combiner])
 
 
@@ -330,28 +297,7 @@ def analogs(params):
 
     except: data_analogs.append([''])
 
-# --- MAKE EXCEL FILE
-def make_xlsx():
-    with xlsxwriter.Workbook(page_parsing.split('/')[-1]+'.xlsx') as workbook:
-        worksheet = workbook.add_worksheet()
-        for row_num, info in enumerate(data_name):
-            worksheet.write_row(row_num, 0, info)
-        for row_num, info in enumerate(data_article):
-            worksheet.write_row(row_num, 1, info)
-        for row_num, info in enumerate(data_brand):
-            worksheet.write_row(row_num, 2, info)
-        for row_num, info in enumerate(data_img_link):
-            worksheet.write_row(row_num, 3, info)
-        for row_num, info in enumerate(data_original_details):
-            worksheet.write_row(row_num, 4, info)
-        for row_num, info in enumerate(data_another_cars):
-            worksheet.write_row(row_num, 5, info)
-        for row_num, info in enumerate(data_details_information):
-            worksheet.write_row(row_num, 6, info)
-        for row_num, info in enumerate(data_combine_information):
-            worksheet.write_row(row_num, 7, info)
-        for row_num, info in enumerate(data_analogs):
-            worksheet.write_row(row_num, 8, info)
+
 
 
 
@@ -362,7 +308,7 @@ def main():
     first_categories_page = get_soup(main_url + page_parsing)
     page_amont = int(first_categories_page.find('div', class_="cpages").findAll('li')[-1].find(string=True))
     print(page_amont)
-    for page_num in range(1, 3):
+    for page_num in range(1, page_amont+1):
         categories_page = get_soup(f'{main_url + page_parsing}/p_{page_num}')
         print('START - ', page_num)
 
@@ -381,17 +327,18 @@ def main():
             product_names(open_product_page)
             product_article(open_product_page)
             product_brand(open_product_page)
-            # product_img(open_product_page)
+            product_img(open_product_page)
             product_original_details(open_product_page)
-            # another_cars(open_product_page, params_name)
-            # details_information(open_product_page)
-            # analogs(open_product_page)
-            # data_combine()
+            another_cars(open_product_page, params_name)
+            details_information(open_product_page)
+            analogs(open_product_page)
+            data_combine()
 
-        # save_another_car(params_name)
-        # save_csv_cars(params_name)
+
+
+        save_csv_cars(params_name)
     save_main_csv(category_folder_name)
-        # make_xlsx()
+
 
 
 
