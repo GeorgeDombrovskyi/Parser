@@ -30,14 +30,15 @@ combine_ua_cars = []
 
 
 cars_list = ['ACURA', 'ALFA ROMEO', 'AUDI', 'ASTON MARTIN', 'BMW', 'BUICK',
-             'BENTLEY', 'BYD',  'CADILLAC', 'CHERY',  'CHEVROLET', 'CHRYSLER',  'CITRO"EN', 'CUPRA', 'DACIA',
-             'DAEWOO', 'DS', 'DAIHATSU', 'DODGE', 'FIAT', 'FORD',  'GEELY',  'GAZ',
-             'GMC', 'GENERAL MOTORS', 'GREAT WALL',  'HONDA', 'HUMMER', 'HYUNDAI',
-             'INFINITI',  'ISUZU', 'IVECO', 'JAGUAR',  'JEEP', 'JAC', 'KIA', 'LADA', 'LANCIA', 'LANDWIND (JMC)',
-             'LAND ROVER', 'LDV',  'LIFAN', 'LEXUS',  'MAN',  'MAZDA', 'MASERATI',  'MERCEDES-BENZ',
-             'MG', 'MINI',  'MITSUBISHI', 'NISSAN',  'OPEL', 'PEUGEOT', 'PORSCHE', 'PONTIAC',
-             'RAM', 'RENAULT', 'ROVER',  'SAAB', 'SCION', 'SEAT', 'SKODA', 'SMART', 'SSANGYONG',  'SCANIA',
-             'SUBARU', 'SUZUKI',  'TOYOTA', 'VW',  'VOLVO',  'ЗАЗ',  'ГАЗ',  'УАЗ']
+             'BENTLEY',   'CADILLAC', 'CHERY',  'CHEVROLET', 'CHRYSLER',  'CITRO"EN',  'DACIA',
+             'DAEWOO',  'DODGE', 'FIAT', 'FORD',  'GEELY',
+             'GMC',  'GREAT WALL',  'HONDA', 'HUMMER', 'HYUNDAI',
+             'INFINITI',  'ISUZU', 'IVECO', 'JAGUAR',  'JEEP',  'KIA', 'LADA', 'LANCIA',
+             'LAND ROVER',  'LEXUS',  'MAN',  'MAZDA', 'MASERATI',  'MERCEDES-BENZ',
+             'MG', 'MINI',  'MITSUBISHI', 'NISSAN',  'OPEL', 'PEUGEOT', 'PORSCHE',
+              'RENAULT', 'ROVER',  'SAAB',  'SEAT', 'SKODA', 'SMART', 'SSANGYONG',
+             'SUBARU', 'SUZUKI',  'TOYOTA', 'VW',  'VOLVO']
+
 
 
 article_mme = [['product_sku']]
@@ -225,26 +226,11 @@ def another_cars(params, params_name):
 
         article = params.find('div', class_='ccard-part').find('b').find(string=True).strip()
         print('y nas v spiske - ', len(combine_mme))
-
-        if len(combine_mme) < 10000 :
-            for auto_list_area in auto_list_area:
-                # print('start FOR auto_list_area')
-                another_auto = auto_list_area.text
-                # print('another_auto = ', another_auto)
-                define_car(another_auto, article)
-        else:
-            print('ZAWLI ZA 10000')
-
-            save_csv_cars(article)
-
-            combine_mme.clear()
-
-            combine_mme.append(['product_sku', 'make', 'model', 'engine'])
-
-            for auto_list_area in auto_list_area:
-                another_auto = auto_list_area.text
-                define_car(another_auto, article)
-
+        for auto_list_area in auto_list_area:
+            # print('start FOR auto_list_area')
+            another_auto = auto_list_area.text
+            # print('another_auto = ', another_auto)
+            define_car(another_auto, article)
     except: None
 
 
@@ -329,18 +315,16 @@ def main():
             # --- OUR FUNCTIONS
             product_names(open_product_page)
             product_article(open_product_page)
-            product_brand(open_product_page)
-            product_img(open_product_page)
-            product_original_details(open_product_page)
+            # product_brand(open_product_page)
+            # product_img(open_product_page)
+            # product_original_details(open_product_page)
             another_cars(open_product_page, params_name)
-            details_information(open_product_page)
-            analogs(open_product_page)
-            data_combine()
+            # details_information(open_product_page)
+            # analogs(open_product_page)
+            # data_combine()
 
-
-
-        save_csv_cars(params_name)
-    save_main_csv(category_folder_name)
+    save_csv_cars(params_name)
+    # save_main_csv(category_folder_name)
 
 
 
