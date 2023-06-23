@@ -75,7 +75,7 @@ category_folder_name = f"{page_parsing.split('/')[-1]}"
 os.mkdir(category_folder_name)
 os.chdir(category_folder_name)
 
-img_folder_name = "IMG_folder"
+img_folder_name = f"{category_folder_name}_IMG"
 os.mkdir(img_folder_name)
 
 cars_csv_folder_name = "CSV_cars"
@@ -114,7 +114,7 @@ def product_img(params):
         with open(file_name, 'wb') as handler:
             handler.write(img_data)
 
-        img_source = f'http://car-details.in.ua/wp-content/uploads/{category_folder_name}/' + file_name
+        img_source = f'http://car-details.in.ua/wp-content/uploads/{img_folder_name}/' + file_name
         data_img_link.append([img_source])
 
     except: data_img_link.append([''])
@@ -315,16 +315,16 @@ def main():
             # --- OUR FUNCTIONS
             product_names(open_product_page)
             product_article(open_product_page)
-            # product_brand(open_product_page)
-            # product_img(open_product_page)
-            # product_original_details(open_product_page)
+            product_brand(open_product_page)
+            product_img(open_product_page)
+            product_original_details(open_product_page)
             another_cars(open_product_page, params_name)
-            # details_information(open_product_page)
-            # analogs(open_product_page)
-            # data_combine()
+            details_information(open_product_page)
+            analogs(open_product_page)
+            data_combine()
 
     save_csv_cars(params_name)
-    # save_main_csv(category_folder_name)
+    save_main_csv(category_folder_name)
 
 
 
