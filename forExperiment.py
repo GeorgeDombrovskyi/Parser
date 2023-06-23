@@ -38,15 +38,16 @@ import os
 # print('the end')
 
 
-num = 0
-list = ['a', 'b', 'c', 'd']
+# num = 0
+# list = ['a', 'b', 'c', 'd']
+#
+# def fun():
+#     for check in list:
+#         print(num)
+#         num = num + 1
+#
+# fun()
 
-def fun():
-    for check in list:
-        print(num)
-        num = num + 1
-
-fun()
 
 
 # dt_a = [['a']]
@@ -58,7 +59,7 @@ fun()
 
 
 
-
+source /Users/admin/Desktop/ShopParser/bin/activate
 
 
 
@@ -69,3 +70,7 @@ fun()
 #     os.chdir(will_be)
 #
 # dirback()
+
+
+
+print($PATH)

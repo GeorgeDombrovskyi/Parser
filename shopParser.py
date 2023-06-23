@@ -1,15 +1,17 @@
 import csv
+from fake_useragent import UserAgent
 
 import bs4
 import requests
-import xlsxwriter
+# import xlsxwriter
 import os
 
 
 # ------------------------------------------------------ MAIN SOURCES ------------------------------------------------------
-
+ua = UserAgent()
 main_url = 'https://autoprotect.ua/'
-headers = {'User-agent':'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/112.0.0.0 Safari/537.36'}
+
+headers = {'User-agent':ua.random}
 
 data_article = [['Артикул']]
 data_name = [['Назва']]
@@ -50,8 +52,8 @@ combine_mme =[['product_sku', 'make', 'model', 'engine']]
 
 
 
-page_parsing = '/catalog/tormoznoj_baraban'
-data_category = 'Uncategorized, Автозапчастини, Автозапчастини > Гальмівна система, Автозапчастини > Гальмівна система > Гальмові елементи > Гальмівний барабан, Автозапчастини > Гальмівна система > Гальмові'
+page_parsing = '/catalog/diski_tormoznie'
+data_category = 'Автозапчастини, Автозапчастини > Гальмівна система, Автозапчастини > Гальмівна система > Гальмові елементи > Гальмівні диски, Автозапчастини > Гальмівна система > Гальмові елементи'
 
 
 def get_soup(url):
@@ -103,7 +105,7 @@ def product_names(params):
 
 # --- PRODUCT IMG AND ITS SOURCES
 def product_img(params):
-    print('-- Start IMG function')
+    # print('-- Start IMG function')
     try:
         os.chdir(img_folder_name)
 
@@ -156,6 +158,7 @@ def product_original_details(params):
         data_original_details.append([''])
 
 def save_csv_cars(params_name):
+    print('START SAVE CAR CSV')
     try:
         os.chdir(cars_csv_folder_name)
         with open(f'{params_name}.csv', 'w') as file:
@@ -169,7 +172,7 @@ def save_csv_cars(params_name):
 
 def save_main_csv(params_name):
     num = len(data_article)
-    print('OUR NUM  -  ', num)
+    print('START SAVE MAIN CSV  -  ', num)
 
     with open(f'{params_name}.csv', 'a') as file:
         for w in range(0, num):
@@ -191,11 +194,12 @@ def save_main_csv(params_name):
 
 
 def define_car(param_another, param_article):
-
+    # print('we start define')
     try:
         for check in cars_list:
             x = param_another.find(check)
             if x != -1:
+                # print('we fonded - ', check)
 
                 param_another = param_another.replace(check, '')
                 # print('PARAM - ', param_another)
@@ -211,9 +215,10 @@ def define_car(param_another, param_article):
                 # model_mme.append([param_another[0]])
                 # engine_mme.append([param_another[1]])
                 break
-            elif check == 'УАЗ':
-                print('check is - ', check)
-                print('----- NOTHING HERE ----', param_another)
+            elif check == 'VOLVO':
+                None
+                # print('check is - ', check)
+                # print('----- NOTHING HERE ----', param_another)
 
 
 
@@ -297,7 +302,7 @@ def main():
     first_categories_page = get_soup(main_url + page_parsing)
     page_amont = int(first_categories_page.find('div', class_="cpages").findAll('li')[-1].find(string=True))
     print(page_amont)
-    for page_num in range(1, page_amont+1):
+    for page_num in range(51, 76):
         categories_page = get_soup(f'{main_url + page_parsing}/p_{page_num}')
         print('START - ', page_num)
 
@@ -308,7 +313,7 @@ def main():
             product_link = all_products_links.find('a')['href']
 
             params_name = f'{product_link.split("/")[-1]}'
-            print('our name  ', params_name)
+            # print('our name  ', params_name)
 
             open_product_page = get_soup(product_link)
 
