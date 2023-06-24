@@ -11,7 +11,8 @@ import os
 ua = UserAgent()
 main_url = 'https://autoprotect.ua/'
 
-headers = {'User-agent':ua.random}
+# headers = {'User-agent': ua.random}
+headers = {'User-agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/112.0.0.0 Safari/537.36'}
 
 data_article = [['Артикул']]
 data_name = [['Назва']]
@@ -302,7 +303,7 @@ def main():
     first_categories_page = get_soup(main_url + page_parsing)
     page_amont = int(first_categories_page.find('div', class_="cpages").findAll('li')[-1].find(string=True))
     print(page_amont)
-    for page_num in range(51, 76):
+    for page_num in range(176, 201):
         categories_page = get_soup(f'{main_url + page_parsing}/p_{page_num}')
         print('START - ', page_num)
 
