@@ -53,8 +53,8 @@ combine_mme =[['product_sku', 'make', 'model', 'engine']]
 
 
 
-page_parsing = '/catalog/diski_tormoznie'
-data_category = 'Автозапчастини, Автозапчастини > Гальмівна система, Автозапчастини > Гальмівна система > Гальмові елементи > Гальмівні диски, Автозапчастини > Гальмівна система > Гальмові елементи'
+page_parsing = '/catalog/tormoznye_kolodki_barabannye'
+data_category = 'Автозапчастини, Автозапчастини > Гальмівна система, Автозапчастини > Гальмівна система > Гальмові елементи > Гальмівні колодки барабанні, Автозапчастини > Гальмівна система > Гальмові елементи'
 
 
 def get_soup(url):
@@ -99,7 +99,7 @@ def dirback():
 # --- PRODUCT NAME
 def product_names(params):
     try:
-        product_name = params.find('h1').find('span').find(string=True).strip()
+        product_name = params.find('h1').find('span').find(string=True).strip(" ")
         data_name.append([product_name])
     except: data_name.append([''])
 
@@ -127,7 +127,7 @@ def product_img(params):
 # --- PRODUCT BRAND
 def product_brand(params):
     try:
-        brand = params.find('div', class_='ccard-pbrand').find('a').find(string=True).strip()
+        brand = params.find('div', class_='ccard-pbrand').find('a').find(string=True).strip(" ")
         data_brand.append([brand])
     except: data_brand.append([''])
 
@@ -135,7 +135,7 @@ def product_brand(params):
 # --- PRODUCT ARTICLE
 def product_article(params):
     try:
-        article = params.find('div', class_='ccard-part').find('b').find(string=True).strip()
+        article = params.find('div', class_='ccard-part').find('b').find(string=True).strip(" ")
         data_article.append([article])
     except: data_article.append([''])
 
@@ -230,7 +230,7 @@ def another_cars(params, params_name):
     try:
         auto_list_area = params.find('div', class_="item-modifications-list").findAll('li')
 
-        article = params.find('div', class_='ccard-part').find('b').find(string=True).strip()
+        article = params.find('div', class_='ccard-part').find('b').find(string=True).strip(" ")
         print('y nas v spiske - ', len(combine_mme))
         for auto_list_area in auto_list_area:
             # print('start FOR auto_list_area')
@@ -284,7 +284,7 @@ def analogs(params):
             src = analogs_area.find('a')['href']
             parse = get_soup(src)
             try:
-                article = parse.find('div', class_='ccard-part').find('b').find(string=True).strip()
+                article = parse.find('div', class_='ccard-part').find('b').find(string=True).strip(" ")
                 analogs_list = analogs_list + article +', '
             except:
                 None
@@ -303,7 +303,7 @@ def main():
     first_categories_page = get_soup(main_url + page_parsing)
     page_amont = int(first_categories_page.find('div', class_="cpages").findAll('li')[-1].find(string=True))
     print(page_amont)
-    for page_num in range(176, 201):
+    for page_num in range(26, 59):
         categories_page = get_soup(f'{main_url + page_parsing}/p_{page_num}')
         print('START - ', page_num)
 
