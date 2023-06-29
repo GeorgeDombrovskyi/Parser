@@ -53,8 +53,8 @@ combine_mme =[['product_sku', 'make', 'model', 'engine']]
 
 
 
-page_parsing = '/catalog/tormoznye_kolodki_barabannye'
-data_category = 'Автозапчастини, Автозапчастини > Гальмівна система, Автозапчастини > Гальмівна система > Гальмові елементи > Гальмівні колодки барабанні, Автозапчастини > Гальмівна система > Гальмові елементи'
+page_parsing = '/catalog/tormoznie_kolodki'
+data_category = 'Автозапчастини, Автозапчастини > Гальмівна система, Автозапчастини > Гальмівна система > Гальмові елементи, Автозапчастини > Гальмівна система > Гальмові елементи > Гальмівні колодки'
 
 
 def get_soup(url):
@@ -158,11 +158,11 @@ def product_original_details(params):
         combine_ua_origin.append('')
         data_original_details.append([''])
 
-def save_csv_cars(params_name):
+def save_csv_cars(params_name, page_num):
     print('START SAVE CAR CSV')
     try:
         os.chdir(cars_csv_folder_name)
-        with open(f'{params_name}.csv', 'w') as file:
+        with open(f'{params_name}_{page_num}.csv', 'w') as file:
             writer = csv.writer(file)
             writer.writerows(
                 combine_mme
@@ -171,11 +171,11 @@ def save_csv_cars(params_name):
     dirback()
 
 
-def save_main_csv(params_name):
+def save_main_csv(params_name, page_num):
     num = len(data_article)
     print('START SAVE MAIN CSV  -  ', num)
 
-    with open(f'{params_name}.csv', 'a') as file:
+    with open(f'{params_name}_{page_num}.csv', 'a') as file:
         for w in range(0, num):
             writer = csv.writer(file)
             writer.writerow(
@@ -303,7 +303,7 @@ def main():
     first_categories_page = get_soup(main_url + page_parsing)
     page_amont = int(first_categories_page.find('div', class_="cpages").findAll('li')[-1].find(string=True))
     print(page_amont)
-    for page_num in range(26, 59):
+    for page_num in range(1, 101):
         categories_page = get_soup(f'{main_url + page_parsing}/p_{page_num}')
         print('START - ', page_num)
 
@@ -329,8 +329,9 @@ def main():
             analogs(open_product_page)
             data_combine()
 
-    save_csv_cars(params_name)
-    save_main_csv(category_folder_name)
+        if page_num == 25 or page_num == 50 or page_num == 75 or page_num == 100:
+            save_csv_cars(params_name, page_num)
+            save_main_csv(category_folder_name, page_num)
 
 
 
