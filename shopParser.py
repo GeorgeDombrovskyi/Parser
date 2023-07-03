@@ -53,9 +53,12 @@ combine_mme =[['product_sku', 'make', 'model', 'engine']]
 
 
 
-page_parsing = '/catalog/tormoznie_kolodki'
-data_category = 'Автозапчастини, Автозапчастини > Гальмівна система, Автозапчастини > Гальмівна система > Гальмівні елементи, Автозапчастини > Гальмівна ' \
-                'система > Гальмівні елементи > Гальмівні колодки'
+page_parsing = '/catalog/remkomplekt_tormoznogo_supporta'
+
+data_category = 'Автозапчастини, Автозапчастини > Гальмівна система, Автозапчастини > Гальмівна система > Гідравліка гальмової системи, Автозапчастини > Гальмівна ' \
+                'система > Гідравліка гальмової системи > Ремкомплект гальмівного супорта'
+
+
 
 
 def get_soup(url):
@@ -176,7 +179,7 @@ def save_main_csv(params_name, page_num):
     num = len(data_article)
     print('START SAVE MAIN CSV  -  ', num)
 
-    with open(f'{params_name}_{page_num}.csv', 'a') as file:
+    with open(f'{params_name}_{page_num}.csv', 'w') as file:
         for w in range(0, num):
             writer = csv.writer(file)
             writer.writerow(
@@ -302,9 +305,11 @@ def analogs(params):
 def main():
 
     first_categories_page = get_soup(main_url + page_parsing)
+
     page_amont = int(first_categories_page.find('div', class_="cpages").findAll('li')[-1].find(string=True))
     print(page_amont)
-    for page_num in range(386, page_amont + 1):
+
+    for page_num in range(1, page_amont + 1):
         categories_page = get_soup(f'{main_url + page_parsing}/p_{page_num}')
         print('START - ', page_num)
 
