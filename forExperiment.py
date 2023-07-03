@@ -59,7 +59,7 @@ import os
 
 
 
-source /Users/admin/Desktop/ShopParser/bin/activate
+# source /Users/admin/Desktop/ShopParser/bin/activate
 
 
 
@@ -73,4 +73,10 @@ source /Users/admin/Desktop/ShopParser/bin/activate
 
 
 
-print($PATH)
+# print($PATH)
+
+num = 14
+
+if num % 5 == 0:
+    print('kratno')
+else: print( 'net')

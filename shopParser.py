@@ -54,7 +54,8 @@ combine_mme =[['product_sku', 'make', 'model', 'engine']]
 
 
 page_parsing = '/catalog/tormoznie_kolodki'
-data_category = 'Автозапчастини, Автозапчастини > Гальмівна система, Автозапчастини > Гальмівна система > Гальмові елементи, Автозапчастини > Гальмівна система > Гальмові елементи > Гальмівні колодки'
+data_category = 'Автозапчастини, Автозапчастини > Гальмівна система, Автозапчастини > Гальмівна система > Гальмівні елементи, Автозапчастини > Гальмівна ' \
+                'система > Гальмівні елементи > Гальмівні колодки'
 
 
 def get_soup(url):
@@ -303,7 +304,7 @@ def main():
     first_categories_page = get_soup(main_url + page_parsing)
     page_amont = int(first_categories_page.find('div', class_="cpages").findAll('li')[-1].find(string=True))
     print(page_amont)
-    for page_num in range(1, 101):
+    for page_num in range(386, page_amont + 1):
         categories_page = get_soup(f'{main_url + page_parsing}/p_{page_num}')
         print('START - ', page_num)
 
@@ -329,10 +330,12 @@ def main():
             analogs(open_product_page)
             data_combine()
 
-        if page_num == 25 or page_num == 50 or page_num == 75 or page_num == 100:
+        if page_num % 5 == 0:
             save_csv_cars(params_name, page_num)
             save_main_csv(category_folder_name, page_num)
 
+    save_csv_cars(params_name, page_num)
+    save_main_csv(category_folder_name, page_num)
 
 
 
